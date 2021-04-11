@@ -24,6 +24,12 @@ private:
         }
     }
 public:
+    int getNumerator(){
+        return numerator;
+    }
+    int getDenominator(){
+        return denominator;
+    }
  bool operator==(ScaleFactor rhs)
     {
         return (this->numerator * rhs.denominator) == (rhs.numerator * this->denominator);

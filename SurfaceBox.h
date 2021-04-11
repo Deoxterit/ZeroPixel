@@ -103,9 +103,21 @@
 #include "SurfaceBoxRendererList.h"
 #include "ScaleFactor.h"
 #include "UPixelOps.h"
+
+
+//#include <QWidget>
+//#include <QtGui>
+//#include <QOpenGLFunctions>
+//#include <QtOpenGL/QOpenGLBuffer>
+//#include <QtOpenGLWidgets/QOpenGLWidget>
+//#include <QDebug>
+//#include <QOpenGLShader>
+//#include <QOpenGLShaderProgram>
+
 class SurfaceBox:public QWidget{
 private:
     Surface *surface;
+    Surface *bufferSurface;
     ScaleFactor *factor;
     QImage* image;
     SurfaceBoxBaseRenderer* renderer;
@@ -156,6 +168,7 @@ public:
             sbrl.remove(&sbbr);
         }
     }
+#include <QDebug>
     void resizeEvent(QResizeEvent *event) override{
         QSize ms=this->size();
         if(this->width()==maxSideLength&&surface!=nullptr){
@@ -180,15 +193,22 @@ public:
             this->factor=&newsf;
         }
         this->rendererList->setDestinationSize(this->size());
+        bufferSurface=new Surface(this->width(),this->height());
     }
-    void paintEvent(QPaintEvent *event) override{
-        QPainter qp(this);
-        Surface temp(this->size().width(),this->size().height());
-        renderTo(&temp);
-        QImage* imfage=new QImage(reinterpret_cast<byte*>(temp.getPointAdress(0,0)),temp.width,temp.height,QImage::Format_ARGB32);
-        qp.drawImage(0,0,*imfage);
-    }
+    virtual void prePaint(QPaintEvent *event){}
+    virtual void postPaint(QPaintEvent *event){}
 
+    void paintEvent(QPaintEvent *event) override{
+        prePaint(event);
+        QPainter qp(this);
+    //    Surface temp(this->size().width(),this->size().height());
+        rendererList->render(bufferSurface,QPoint(0,0));
+
+       // renderTo(&temp);
+        QImage* imfage=new QImage(reinterpret_cast<byte*>(bufferSurface->getPointAdress(0,0)),bufferSurface->width,bufferSurface->height,QImage::Format_ARGB32);
+        qp.drawImage(0,0,*imfage);
+        postPaint(event);
+    }
 
 };
 
